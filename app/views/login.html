@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=person" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Connexion</title>
@@ -13,9 +13,28 @@
     <main>
         <section class="hero">
             <div class="container">
-                <h1>Connexion</h1>
-                <p>Placer un formulaire de connexion ici</p>
-            </div>
+    <form id="login-form" class="form-card">
+    <h2>Connexion</h2>
+
+    <div class="form-group">
+        <input type="email" id="email" required placeholder=" ">
+        <label>Email</label>
+    </div>
+
+    <div class="form-group">
+        <input type="password" id="password" required placeholder=" ">
+        <label>Mot de passe</label>
+    </div>
+
+    <button type="submit" class="btn-primary">Se connecter</button>
+
+    <p class="form-footer">
+        Pas de compte ? <a href="/register">Créer un compte</a>
+    </p>
+
+    <div id="message" class="message"></div>
+</form>
+</div>
         </section>
     </main>
 
@@ -26,5 +45,33 @@
     </footer>
 
     <script src="/js/nav.js"></script>
+    <script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // CRITIQUE : Il faut récupérer les valeurs des inputs ici
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }) // Maintenant email et password existent
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user)); 
+        window.location.href = '/';
+    } else {
+        const msg = document.getElementById('message');
+        msg.textContent = data.error || 'Erreur de connexion';
+        msg.className = 'message error';
+        msg.style.display = 'block';
+    }
+});
+</script>
 </body>
 </html>

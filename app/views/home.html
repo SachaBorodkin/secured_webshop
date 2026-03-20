@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=person" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Accueil</title>
@@ -25,17 +25,47 @@
         <a href="/profile" class="category-tile">Mes Recettes <span>🍲</span></a>
     </section>
 
-    <section class="product-section">
-        <h2>Articles en vedette</h2>
-        <div class="product-grid">
-            <article class="product-card">
-                <img src="https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=300&q=80" alt="Produit">
-                <h3>Casque Audio Pro X1</h3>
-                <span class="price">89.00 CHF</span>
-                <button class="add-btn">+</button>
-            </article>
-            </div>
-    </section>
+   <section id="produit" class="product-section">
+    <div class="container">
+        <h2>Nos Produits</h2>
+        <div id="product-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+            <p>Chargement des produits...</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    async function loadProducts() {
+        try {
+            const response = await fetch('/api/products');
+            const products = await response.json();
+            const listContainer = document.getElementById('product-list');
+
+            if (products.length === 0) {
+                listContainer.innerHTML = "<p>Aucun produit disponible pour le moment.</p>";
+                return;
+            }
+
+            listContainer.innerHTML = products.map(product => `
+                <article class="product-card">
+                    <img src="${product.image_url || 'https://via.placeholder.com/300'}" alt="${product.name}" />
+                    <div class="product-content">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="product-footer">
+                            <span class="price">${product.price} CHF</span>
+                            <button type="button">Ajouter au panier</button>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        } catch (error) {
+            document.getElementById('product-list').innerHTML = "<p>Erreur lors du chargement des produits.</p>";
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadProducts);
+</script>
 </main>
     </main>
 

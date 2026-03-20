@@ -1,10 +1,37 @@
-// Navigation commune à toutes les pages
-// Pour modifier le menu, éditer uniquement ce fichier
+
 document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('topbar');
     if (!nav) return;
+
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user')); 
+
+ 
+    let userActionsContent = `
+        <a href="/login" class="account-link">
+            <span class="material-symbols-outlined">person</span> Se connecter
+        </a>
+    `;
+
+    if (token && user) {
+
+        userActionsContent = `
+        <div class="acc">
+            <div class="user-logged-in">
+                <a href="/profile" class="account-link">
+                    <span class="material-symbols-outlined">person</span> ${user.username}
+                </a>
+                
+            </div>
+            <button id="logout-btn"><span class="material-symbols-outlined">
+exit_to_app
+</span>Déconnexion</button>
+        </div>
+        `;
+    }
+
     nav.innerHTML = `
-  <header class="topbar">
+        <header class="topbar">
             <div class="container header-content">
                 <div class="brand"><a href="/">Alcohol.ch</a></div>
 
@@ -18,12 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="user-actions">
-                    
-                    <a href="/login" class="account-link">
-                        <span class="material-symbols-outlined">
-person
-</span></span> Se connecter
-                    </a>
+                    ${userActionsContent}
                 </div>
             </div>
         </header>
@@ -37,4 +59,14 @@ person
             </div>
         </nav>
     `;
+
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        });
+    }
 });

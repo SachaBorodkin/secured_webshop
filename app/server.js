@@ -1,5 +1,5 @@
 require('dotenv').config({ path: '../.env' });
-
+const authMiddleware = require("./middleware/auth");
 const express = require("express");
 const path = require("path");
 
@@ -18,10 +18,16 @@ app.use(express.static(path.join(__dirname, "public")));
 const authRoute    = require("./routes/Auth");
 const profileRoute = require("./routes/Profile");
 const adminRoute   = require("./routes/Admin");
-
+const productController = require("./controllers/ProductController");
+app.get("/api/products", productController.getAllProducts);
 app.use("/api/auth",    authRoute);
 app.use("/api/profile", profileRoute);
-app.use("/api/admin",   adminRoute);
+app.use("/api/admin", authMiddleware, (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Réservé aux administrateurs' });
+    }
+    next();
+}, adminRoute);
 
 // ---------------------------------------------------------------
 // Routes pages (retournent du HTML)

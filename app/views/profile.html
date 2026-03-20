@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=person" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Mon Profil</title>
@@ -69,73 +69,97 @@
 
     <script src="/js/nav.js"></script>
     <script>
-        // ------------------------------------------------------------------
-        // Chargement du profil au démarrage
-        // ------------------------------------------------------------------
-        async function loadProfile() {
-            const res = await fetch('/api/profile');
-            if (!res.ok) return;
-            const user = await res.json();
+    // ------------------------------------------------------------------
+    // Fonction utilitaire pour les en-têtes d'autorisation
+    // ------------------------------------------------------------------
+    function getAuthHeaders(contentType = 'application/json') {
+        const token = localStorage.getItem('token');
+        const headers = {
+            'Authorization': `Bearer ${token}`
+        };
+        if (contentType) {
+            headers['Content-Type'] = contentType;
+        }
+        return headers;
+    }
 
-            document.getElementById('username').textContent = user.username;
-            document.getElementById('email').textContent    = user.email;
-            document.getElementById('role').textContent     = user.role;
-
-            document.getElementById('address').value = user.address || '';
-
-            const photoContainer = document.getElementById('photo-container');
-            if (user.photo_path) {
-                photoContainer.innerHTML = `<img class="profile-photo" src="${user.photo_path}" alt="Photo de profil">`;
-            }
-
-            const infoDiv = document.getElementById('user-info');
-            infoDiv.innerHTML += `<div class="info-row"><strong>Adresse :</strong> ${user.address || ''}</div>`;
+    // ------------------------------------------------------------------
+    // Chargement du profil au démarrage
+    // ------------------------------------------------------------------
+    async function loadProfile() {
+        // Ajout de l'en-tête Authorization pour identifier l'utilisateur
+        const res = await fetch('/api/profile', {
+            headers: getAuthHeaders()
+        });
+        
+        if (res.status === 401 || res.status === 403) {
+            window.location.href = '/login'; // Rediriger si non connecté
+            return;
         }
 
-        // ------------------------------------------------------------------
-        // Mise à jour de l'adresse
-        // ------------------------------------------------------------------
-        document.getElementById('address-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const address = document.getElementById('address').value;
+        const user = await res.json();
 
-            const res = await fetch('/api/profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ address })
-            });
+        document.getElementById('username').textContent = user.username;
+        document.getElementById('email').textContent    = user.email;
+        document.getElementById('role').textContent     = user.role;
+        document.getElementById('address').value        = user.address || '';
 
-            const data = await res.json();
-            showMessage(res.ok ? 'success' : 'error', data.message || data.error);
-            if (res.ok) loadProfile();
-        });
-
-        // ------------------------------------------------------------------
-        // Upload de la photo
-        // ------------------------------------------------------------------
-        document.getElementById('photo-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const file = document.getElementById('photo').files[0];
-            if (!file) return showMessage('error', 'Aucun fichier sélectionné');
-
-            const formData = new FormData();
-            formData.append('photo', file);
-
-            const res = await fetch('/api/profile/photo', { method: 'POST', body: formData });
-            const data = await res.json();
-            showMessage(res.ok ? 'success' : 'error', data.message || data.error);
-            if (res.ok) loadProfile();
-        });
-
-        function showMessage(type, text) {
-            const el = document.getElementById('status-message');
-            el.textContent = text;
-            el.className = 'message ' + type;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        const photoContainer = document.getElementById('photo-container');
+        if (user.photo_path) {
+            photoContainer.innerHTML = `<img class="profile-photo" src="${user.photo_path}" alt="Photo de profil">`;
         }
+    }
 
-        loadProfile();
-    </script>
+    // ------------------------------------------------------------------
+    // Mise à jour de l'adresse
+    // ------------------------------------------------------------------
+    document.getElementById('address-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const address = document.getElementById('address').value;
+
+        const res = await fetch('/api/profile', {
+            method: 'POST',
+            headers: getAuthHeaders(), // Utilisation du JWT
+            body: JSON.stringify({ address })
+        });
+
+        const data = await res.json();
+        showMessage(res.ok ? 'success' : 'error', data.message || data.error);
+        if (res.ok) loadProfile();
+    });
+
+    // ------------------------------------------------------------------
+    // Upload de la photo
+    // ------------------------------------------------------------------
+    document.getElementById('photo-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('photo').files[0];
+        if (!file) return showMessage('error', 'Aucun fichier sélectionné');
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        // Pour FormData, on ne définit pas le Content-Type manuellement
+        const res = await fetch('/api/profile/photo', { 
+            method: 'POST', 
+            headers: getAuthHeaders(null), // JWT uniquement
+            body: formData 
+        });
+        
+        const data = await res.json();
+        showMessage(res.ok ? 'success' : 'error', data.message || data.error);
+        if (res.ok) loadProfile();
+    });
+
+    function showMessage(type, text) {
+        const el = document.getElementById('status-message');
+        el.textContent = text;
+        el.className = 'message ' + type;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    loadProfile();
+</script>
 </body>
 </html>
