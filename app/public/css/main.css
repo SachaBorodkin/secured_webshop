@@ -1,12 +1,15 @@
 :root {
-    --bg: #f4f7fb;
+    --bg: #f8f9fa;
     --surface: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --primary: #2563eb;
-    --primary-hover: #1e40af;
-    --shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
-    --radius: 16px;
+    --text: #1a1a1a;
+    --muted: #757575;
+    /* Orange Silpo */
+    --primary: #f26b27; 
+    --primary-hover: #d95a1d;
+    --accent: #ffefdb;
+    /* Style visuel */
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --radius: 24px; /* Coins très arrondis typiques de Silpo */
 }
 
 * {
@@ -15,302 +18,234 @@
 
 body {
     margin: 0;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Inter", -apple-system, sans-serif;
     color: var(--text);
-    background: linear-gradient(180deg, #eef3ff 0%, var(--bg) 100%);
+    background-color: var(--bg);
 }
 
 .container {
-    width: min(1080px, 92%);
+    width: min(1200px, 95%);
     margin: 0 auto;
 }
 
+/* Barre de navigation simplifiée */
 .topbar {
-    position: sticky;
-    top: 0;
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.8);
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.topbar .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 68px;
+    background: var(--surface);
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .brand {
-    font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: lowercase;
 }
 
-.menu {
+/* Grille de catégories (Tuiles en haut) */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.category-tile {
+    background: var(--surface);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     display: flex;
-    gap: 1.2rem;
-}
-
-.menu a {
+    justify-content: space-between;
+    align-items: center;
     text-decoration: none;
     color: var(--text);
-    font-weight: 500;
+    font-weight: 600;
+    transition: transform 0.2s;
 }
 
+.category-tile:hover {
+    transform: translateY(-5px);
+}
+
+/* Hero Section (Bannière promotionnelle) */
 .hero {
-    padding: 5rem 0 3.5rem;
+    background: linear-gradient(135deg, #a485ff 0%, #7d5fff 100%);
+    border-radius: var(--radius);
+    padding: 3rem;
+    color: white;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    min-height: 300px;
 }
 
-.eyebrow {
-    display: inline-block;
+.hero h1 {
+    font-size: 2.5rem;
+    max-width: 500px;
     margin: 0;
-    padding: 0.35rem 0.8rem;
-    border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-size: 0.85rem;
-    font-weight: 700;
 }
 
-h1 {
-    margin: 1rem 0 0.8rem;
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    max-width: 18ch;
+/* Grille de produits style "Rayonnage" */
+.product-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
 }
 
-.hero-text {
-    max-width: 62ch;
-    color: var(--muted);
-    line-height: 1.6;
-}
-
-.cta {
-    margin-top: 1.25rem;
-    display: inline-block;
-    background: var(--primary);
-    color: #fff;
-    text-decoration: none;
-    font-weight: 700;
-    padding: 0.8rem 1.2rem;
-    border-radius: 10px;
-}
-
-.cta:hover {
-    background: var(--primary-hover);
-}
-
-.product-section {
-    padding: 1rem 0 4rem;
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
 }
 
 .product-card {
-    margin-top: 1rem;
-    display: grid;
-    grid-template-columns: 1fr 1.1fr;
-    gap: 1rem;
     background: var(--surface);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    padding: 1rem;
+    transition: box-shadow 0.3s;
     position: relative;
+    border: 1px solid transparent;
 }
 
-.badge {
-    position: absolute;
-    top: 0.9rem;
-    left: 0.9rem;
-    background: #16a34a;
-    color: #fff;
-    padding: 0.35rem 0.6rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 700;
+.product-card:hover {
+    box-shadow: var(--shadow);
+    border-color: #eee;
 }
 
 .product-card img {
     width: 100%;
-    height: 100%;
-    min-height: 320px;
-    object-fit: cover;
-}
-
-.product-content {
-    padding: 1.5rem;
-}
-
-.product-content p {
-    color: var(--muted);
-    line-height: 1.55;
-}
-
-.product-footer {
-    margin-top: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    aspect-ratio: 1/1;
+    object-fit: contain;
+    margin-bottom: 1rem;
 }
 
 .price {
-    font-size: 1.2rem;
-    font-weight: 700;
-}
-
-button {
-    border: 0;
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    background: #111827;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #374151;
-}
-
-.footer {
-    border-top: 1px solid #e5e7eb;
-    background: #fff;
-    color: var(--muted);
-    padding: 1rem 0;
-    text-align: center;
-}
-
-@media (max-width: 800px) {
-    .product-card {
-        grid-template-columns: 1fr;
-    }
-
-    .menu {
-        gap: 0.8rem;
-        font-size: 0.95rem;
-    }
-}
-
-/* =============================================================
-   Page profil
-   ============================================================= */
-.profile-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 2rem;
-    max-width: 600px;
-    margin: 2rem auto;
-}
-
-.profile-photo {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--primary);
+    font-size: 1.4rem;
+    font-weight: 800;
     display: block;
-    margin: 0 auto 1.5rem;
+    margin-top: 0.5rem;
 }
 
-.profile-photo-placeholder {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: #e5e7eb;
+/* Bouton "+" typique du panier Silpo */
+.add-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background: white;
+    border: 2px solid #e0e0e0;
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-size: 2.5rem;
-    color: var(--muted);
+    cursor: pointer;
 }
 
-.form-group {
-    margin-bottom: 1.2rem;
+.add-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
-
-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-}
-
-input[type="text"],
-input[type="file"] {
-    width: 100%;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-.info-row {
+/* Layout de l'en-tête */
+.header-content {
     display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+/* Bouton Catalogue */
+.catalog-btn {
+    background: var(--accent);
+    color: var(--primary);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    color: var(--muted);
+    white-space: nowrap;
 }
 
-.info-row strong {
-    color: var(--text);
-    min-width: 80px;
-}
-
-.message {
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    display: none;
-}
-
-.message.success { background: #dcfce7; color: #166534; }
-.message.error   { background: #fee2e2; color: #991b1b; }
-
-hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
-
-/* =============================================================
-   Page admin
-   ============================================================= */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--surface);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-}
-
-th, td {
-    text-align: left;
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-th {
-    background: #f9fafb;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-}
-
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #f9fafb; }
-
-.badge-admin {
-    background: #dbeafe;
-    color: #1d4ed8;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-.badge-user {
+/* Barre de recherche */
+.search-bar {
+    flex-grow: 1;
+    display: flex;
     background: #f3f4f6;
-    color: var(--muted);
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
+    border-radius: 14px;
+    padding: 2px;
+}
+
+.search-bar input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0.6rem 1rem;
+    outline: none;
+}
+
+.search-btn {
+    background: transparent;
+    border: none;
+    padding: 0 1rem;
+    cursor: pointer;
+}
+
+/* Actions utilisateur (Localisation + Login) */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.loc-text {
+    display: flex;
+    flex-direction: column;
     font-size: 0.8rem;
 }
 
-.admin-section { padding: 2rem 0 4rem; }
+.loc-text .label { color: var(--muted); }
+.loc-text .address { font-weight: 600; }
+
+.account-link {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Menu secondaire */
+.sub-menu {
+    background: white;
+    border-bottom: 1px solid #eee;
+    padding: 0.8rem 0;
+}
+
+.sub-menu .container {
+    display: flex;
+    gap: 2rem;
+}
+a{
+    text-decoration: none;
+    color:    var( --primary);
+}
+.sub-menu a {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
