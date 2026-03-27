@@ -44,7 +44,7 @@ app.use('/user', userRoute);
 app.get('/login',    (_req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
 app.get('/register', (_req, res) => res.sendFile(path.join(__dirname, 'views', 'register.html')));
 app.get('/profile',  (_req, res) => res.sendFile(path.join(__dirname, 'views', 'profile.html')));
-app.use('/api/admin', authMiddleware, (req, res, next) => {
+app.use('/api/admin', adminRoute, (req, res, next) => {
     // req.user comes from the authMiddleware (verified JWT payload)
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Réservé aux administrateurs' });
