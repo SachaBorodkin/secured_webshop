@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('topbar');
     if (!nav) return;
@@ -6,26 +5,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user')); 
 
- 
     let userActionsContent = `
         <a href="/login" class="account-link">
-            <span class="material-symbols-outlined">person</span> Se connecter
+            <span class="material-symbols-outlined">person</span>
+            <span>Se connecter</span>
         </a>
     `;
 
     if (token && user) {
-
         userActionsContent = `
         <div class="acc">
-            <div class="user-logged-in">
-                <a href="/profile" class="account-link">
-                    <span class="material-symbols-outlined">person</span> ${user.username}
-                </a>
-                
-            </div>
-            <button id="logout-btn"><span class="material-symbols-outlined">
-exit_to_app
-</span>Déconnexion</button>
+        <a href="/profile" class="account-link">
+    <span class="material-symbols-outlined">account_circle</span>
+    <span class="user-name-text">${user.username}</span>
+</a>
+            <button id="logout-btn" title="Déconnexion">
+                <span class="material-symbols-outlined">exit_to_app</span>
+            </button>
         </div>
         `;
     }
@@ -36,13 +32,16 @@ exit_to_app
                 <div class="brand"><a href="/">Alcohol.ch</a></div>
 
                 <button class="catalog-btn">
-                    <span>☰</span> Tous les produits
-                </button>
+    <span class="material-symbols-outlined">menu</span>
+    <span>Produits</span>
+</button>
 
-                <div class="search-bar">
-                    <input type="text" placeholder="Je cherche...">
-                    <button class="search-btn">🔍</button>
-                </div>
+<div class="search-bar">
+    <input type="text" placeholder="Rechercher...">
+    <button class="search-btn">
+        <span class="material-symbols-outlined">search</span>
+    </button>
+</div>
 
                 <div class="user-actions">
                     ${userActionsContent}
@@ -59,7 +58,6 @@ exit_to_app
             </div>
         </nav>
     `;
-
 
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {

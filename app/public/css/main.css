@@ -481,3 +481,90 @@ hr {
     border-top: 1px solid #e5e7eb;
     margin: 2rem 0;
 }
+/* Table Styles for Admin */
+.admin-section { padding: 2rem 0; }
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 1rem;
+}
+th { 
+    text-align: left; 
+    padding: 1rem; 
+    color: var(--muted); 
+    font-weight: 600; 
+}
+td { 
+    padding: 1rem; 
+    background: var(--surface);
+}
+td:first-child { border-radius: 12px 0 0 12px; }
+td:last-child { border-radius: 0 12px 12px 0; }
+
+/* Badges */
+[class^="badge-"] {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.badge-admin { background: #fee2e2; color: #991b1b; }
+.badge-user { background: #e0f2fe; color: #075985; }
+
+/* Product Grid Fix */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+.product-footer button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+/* Force the font family and prevent text styling on icons */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Fix the button containers */
+.catalog-btn, .search-btn, .account-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Space between icon and text */
+}
+
+/* Make sure the search button doesn't show the word "search" */
+.search-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+}

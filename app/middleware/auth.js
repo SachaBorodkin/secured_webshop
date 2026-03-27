@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
 
     try {
         // Vérification du jeton avec la clé secrète du .env
-        const verified = jwt.verify(token, process.env.JWT_SECRET || 'secret_par_defaut');
+        const verified = jwt.verify(token, process.env.JWT_SECRET || 'jagermeister');
         req.user = verified; // Injecte l'ID et le rôle dans la requête
         next();
     } catch (err) {
