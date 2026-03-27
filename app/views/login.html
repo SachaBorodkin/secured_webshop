@@ -13,65 +13,73 @@
     <main>
         <section class="hero">
             <div class="container">
-    <form id="login-form" class="form-card">
-    <h2>Connexion</h2>
+                <form id="login-form" class="form-card">
+                    <h2>Connexion</h2>
 
-    <div class="form-group">
-        <input type="email" id="email" required placeholder=" ">
-        <label>Email</label>
-    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" required placeholder=" " autocomplete="email">
+                        <label>Email</label>
+                    </div>
 
-    <div class="form-group">
-        <input type="password" id="password" required placeholder=" ">
-        <label>Mot de passe</label>
-    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" required placeholder=" " autocomplete="current-password">
+                        <label>Mot de passe</label>
+                    </div>
 
-    <button type="submit" class="btn-primary">Se connecter</button>
+                    <button type="submit" class="btn-primary">Se connecter</button>
 
-    <p class="form-footer">
-        Pas de compte ? <a href="/register">Créer un compte</a>
-    </p>
+                    <p class="form-footer">
+                        Pas de compte ? <a href="/register">Créer un compte</a>
+                    </p>
 
-    <div id="message" class="message"></div>
-</form>
-</div>
+                    <div id="message" class="message"></div>
+                </form>
+            </div>
         </section>
     </main>
 
     <footer id="contact" class="footer">
         <div class="container">
-            <p>Projet pedagogique - ETML 183</p>
+            <p>Projet pédagogique - ETML 183</p>
         </div>
     </footer>
 
     <script src="/js/nav.js"></script>
     <script>
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    // CRITIQUE : Il faut récupérer les valeurs des inputs ici
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+        const email    = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const msg      = document.getElementById('message');
 
-    const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }) // Maintenant email et password existent
+        try {
+            const res  = await fetch('/api/auth/login', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email, password }),
+                credentials: 'include'  // nécessaire pour recevoir le cookie refreshToken
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // Stocke seulement l'access token (courte durée) et les infos non-sensibles
+                // Le refresh token est dans un cookie httpOnly — inaccessible par JS
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = '/';
+            } else {
+                msg.textContent   = data.error || 'Erreur de connexion';
+                msg.className     = 'message error';
+                msg.style.display = 'block';
+            }
+        } catch {
+            msg.textContent   = 'Impossible de contacter le serveur.';
+            msg.className     = 'message error';
+            msg.style.display = 'block';
+        }
     });
-
-    const data = await res.json();
-
-    if (res.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user)); 
-        window.location.href = '/';
-    } else {
-        const msg = document.getElementById('message');
-        msg.textContent = data.error || 'Erreur de connexion';
-        msg.className = 'message error';
-        msg.style.display = 'block';
-    }
-});
-</script>
+    </script>
 </body>
 </html>

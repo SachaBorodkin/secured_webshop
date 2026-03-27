@@ -1,11 +1,41 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Inscription</title>
     <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin: 6px 0 4px;
+            background: #e0e0e0;
+            overflow: hidden;
+            transition: all .3s;
+        }
+        .strength-bar-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+        }
+        .strength-label {
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .pw-rules {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 12px;
+            font-size: 12px;
+        }
+        .pw-rules li { padding: 2px 0; color: #888; }
+        .pw-rules li.ok  { color: #2e7d32; }
+        .pw-rules li.ok::before  { content: '✓ '; }
+        .pw-rules li:not(.ok)::before { content: '✗ '; }
+    </style>
 </head>
 <body>
     <div id="topbar"></div>
@@ -15,71 +45,139 @@
             <div class="container">
                 <h1>Inscription</h1>
 
-             <form id="register-form" class="form-card">
-    <h2>Inscription</h2>
+                <form id="register-form" class="form-card">
+                    <h2>Créer un compte</h2>
 
-    <div class="form-group">
-        <input type="text" id="username" required placeholder=" ">
-        <label>Nom d'utilisateur</label>
-    </div>
+                    <div class="form-group">
+                        <input type="text" id="username" required placeholder=" " autocomplete="username">
+                        <label>Nom d'utilisateur</label>
+                    </div>
 
-    <div class="form-group">
-        <input type="email" id="reg-email" required placeholder=" ">
-        <label>Email</label>
-    </div>
+                    <div class="form-group">
+                        <input type="email" id="reg-email" required placeholder=" " autocomplete="email">
+                        <label>Email</label>
+                    </div>
 
-    <div class="form-group">
-        <input type="password" id="reg-password" required placeholder=" ">
-        <label>Mot de passe</label>
-    </div>
+                    <div class="form-group">
+                        <input type="password" id="reg-password" required placeholder=" " autocomplete="new-password">
+                        <label>Mot de passe</label>
+                    </div>
 
-    <button type="submit" class="btn-primary">Créer mon compte</button>
-</form>
+                    <!-- Indicateur de force -->
+                    <div class="strength-bar">
+                        <div class="strength-bar-fill" id="strength-fill"></div>
+                    </div>
+                    <div class="strength-label" id="strength-label" aria-live="polite"></div>
 
+                    <ul class="pw-rules" id="pw-rules" aria-label="Exigences du mot de passe">
+                        <li id="rule-length">8 caractères minimum</li>
+                        <li id="rule-upper">Une majuscule</li>
+                        <li id="rule-lower">Une minuscule</li>
+                        <li id="rule-digit">Un chiffre</li>
+                        <li id="rule-special">Un caractère spécial (!@#$%^&amp;*...)</li>
+                    </ul>
+
+                    <button type="submit" class="btn-primary" id="submit-btn" disabled>Créer mon compte</button>
+
+                    <div id="message" class="message"></div>
+                </form>
             </div>
         </section>
     </main>
 
     <footer id="contact" class="footer">
         <div class="container">
-            <p>Projet pedagogique - ETML 183</p>
+            <p>Projet pédagogique - ETML 183</p>
         </div>
     </footer>
 
     <script src="/js/nav.js"></script>
     <script>
+    // ------------------------------------------------------------------
+    // Politique de mot de passe (miroir de la validation serveur)
+    // ------------------------------------------------------------------
+    const rules = [
+        { id: 'rule-length',  test: pw => pw.length >= 8 },
+        { id: 'rule-upper',   test: pw => /[A-Z]/.test(pw) },
+        { id: 'rule-lower',   test: pw => /[a-z]/.test(pw) },
+        { id: 'rule-digit',   test: pw => /[0-9]/.test(pw) },
+        { id: 'rule-special', test: pw => /[^A-Za-z0-9]/.test(pw) }
+    ];
+
+    const levels = [
+        { label: '',          color: '#e0e0e0', pct: '0%'   },
+        { label: 'Très faible', color: '#e53935', pct: '20%' },
+        { label: 'Faible',    color: '#fb8c00', pct: '40%' },
+        { label: 'Moyen',     color: '#fdd835', pct: '60%' },
+        { label: 'Fort',      color: '#43a047', pct: '80%' },
+        { label: 'Très fort', color: '#1b5e20', pct: '100%'}
+    ];
+
+    const pwInput    = document.getElementById('reg-password');
+    const fill       = document.getElementById('strength-fill');
+    const label      = document.getElementById('strength-label');
+    const submitBtn  = document.getElementById('submit-btn');
+
+    pwInput.addEventListener('input', () => {
+        const pw    = pwInput.value;
+        let score   = 0;
+
+        rules.forEach(r => {
+            const li = document.getElementById(r.id);
+            const ok = r.test(pw);
+            li.classList.toggle('ok', ok);
+            if (ok) score++;
+        });
+
+        const lvl = levels[score];
+        fill.style.width      = lvl.pct;
+        fill.style.background = lvl.color;
+        label.textContent     = lvl.label;
+        label.style.color     = lvl.color;
+
+        // Active le bouton seulement si toutes les règles sont respectées
+        submitBtn.disabled = (score < 5);
+    });
+
+    // ------------------------------------------------------------------
+    // Soumission du formulaire
+    // ------------------------------------------------------------------
     document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Récupération des valeurs du formulaire
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
+        // Sécurité : on lit les valeurs via .value, pas innerHTML
+        const username = document.getElementById('username').value.trim();
+        const email    = document.getElementById('reg-email').value.trim();
+        const password = pwInput.value;
+
+        const msg = document.getElementById('message');
+        msg.style.display = 'none';
 
         try {
-            // Appel à l'API d'inscription (POST /api/auth/register)
             const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, email, password })
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ username, email, password })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
-                window.location.href = '/login'; // Redirection vers la page de connexion
+                alert('Compte créé ! Vous pouvez maintenant vous connecter.');
+                window.location.href = '/login';
             } else {
-                // Affichage de l'erreur (ex: email déjà utilisé)
-                alert('Erreur : ' + (data.error || 'Une erreur est survenue'));
+                // Affichage des détails de validation si présents
+                const detail = data.details ? '\n• ' + data.details.join('\n• ') : '';
+                msg.textContent  = (data.error || 'Une erreur est survenue') + detail;
+                msg.className    = 'message error';
+                msg.style.display = 'block';
             }
-        } catch (error) {
-            console.error('Erreur lors de l\'inscription:', error);
-            alert('Impossible de contacter le serveur.');
+        } catch {
+            msg.textContent  = 'Impossible de contacter le serveur.';
+            msg.className    = 'message error';
+            msg.style.display = 'block';
         }
     });
-</script>
+    </script>
 </body>
 </html>
