@@ -14,7 +14,7 @@ module.exports = {
             return res.status(400).json({ error: 'Email et mot de passe requis' });
         }
 
-        // Activité 6: Requête préparée pour éviter l'injection SQL
+        //Requête préparée pour éviter l'injection SQL
         const query = 'SELECT * FROM users WHERE email = ?';
 
         db.query(query, [email], async (err, results) => {
@@ -29,17 +29,17 @@ module.exports = {
             const user = results[0];
             const pepper = process.env.DB_PEPPER || '';
 
-            // Activité 3, 4, 5: Vérification du mot de passe avec poivre
+            //Vérification du mot de passe avec poivre
             const isMatch = await bcrypt.compare(password + pepper, user.password);
 
             if (!isMatch) {
                 return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
             }
 
-            // Activité 7 & 8: Génération du JWT avec ID et Rôle
+            //Génération du JWT avec ID et Rôle
             const token = jwt.sign(
                 { id: user.id, role: user.role },
-                process.env.JWT_SECRET || 'secret_par_defaut',
+                process.env.JWT_SECRET || 'jagermeister',
                 { expiresIn: '1h' }
             );
 
@@ -62,15 +62,15 @@ module.exports = {
                 return res.status(400).json({ error: 'Tous les champs sont requis' });
             }
 
-            // Activité 4 & 5: Utilisation du poivre et sel (sel géré par bcrypt)
+            //Utilisation du poivre et sel (sel géré par bcrypt)
             const pepper = process.env.DB_PEPPER || '';
             const saltRounds = 10;
             const passwordWithPepper = password + pepper;
 
-            // Activité 3: Hashage du mot de passe
+            //Hashage du mot de passe
             const hashedPassword = await bcrypt.hash(passwordWithPepper, saltRounds);
 
-            // Activité 6: Requête préparée pour l'inscription
+            //Requête préparée pour l'inscription
             const query = 'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)';
             const values = [username, email, hashedPassword, 'user'];
 

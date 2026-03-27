@@ -54,7 +54,7 @@ exit_to_app
             <div class="container">
                 <a href="/">Accueil</a>
                 <a href="/promotions">Promotions</a>
-                <a href="/admin">Administration</a>
+                ${user && user.role === 'admin' ? '<a href="/admin">Administration</a>' : ''}
                 <a href="/profile">Mon Profil</a>
             </div>
         </nav>
