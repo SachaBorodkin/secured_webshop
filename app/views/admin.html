@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=exit_to_app,person" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Shop - Administration</title>
@@ -29,14 +29,12 @@
                             <th>Email</th>
                             <th>Rôle</th>
                             <th>Adresse</th>
-                            <th>Statut</th>
                         </tr>
                     </thead>
                     <tbody id="user-table-body">
-                        <tr><td colspan="6">Chargement...</td></tr>
+                        <tr><td colspan="5">Chargement...</td></tr>
                     </tbody>
                 </table>
-                <div id="message" class="message"></div>
             </div>
         </section>
     </main>
@@ -49,177 +47,24 @@
 
     <script src="/js/nav.js"></script>
     <script>
-    // ------------------------------------------------------------------
-    // Utilitaire anti-XSS : crée un élément texte pur (jamais innerHTML)
-    // ------------------------------------------------------------------
-    function text(value) {
-        return document.createTextNode(value ?? '');
-    }
-
-    function createCell(value) {
-        const td = document.createElement('td');
-        td.appendChild(text(value));
-        return td;
-    }
-
-    // ------------------------------------------------------------------
-    // Chargement de la liste des utilisateurs
-    // ------------------------------------------------------------------
-    async function loadUsers() {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/admin/users', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'include'
+        fetch('/api/admin/users')
+            .then(r => r.json())
+            .then(users => {
+                const tbody = document.getElementById('user-table-body');
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.username}</td>
+                        <td>${u.email}</td>
+                        <td><span class="badge-${u.role}">${u.role}</span></td>
+                        <td>${u.address || '-'}</td>
+                    </tr>
+                `).join('');
+            })
+            .catch(() => {
+                document.getElementById('user-table-body').innerHTML =
+                    '<tr><td colspan="5">Erreur lors du chargement</td></tr>';
             });
-
-            // Si le token est expiré, tenter un refresh silencieux
-            if (res.status === 401 || res.status === 403) {
-                const refreshed = await tryRefreshToken();
-                if (refreshed) {
-                    loadUsers();
-                } else {
-                    window.location.href = '/login';
-                }
-                return;
-            }
-
-            if (!res.ok) {
-                const data = await res.json();
-                showError(data.error || 'Erreur lors du chargement');
-                return;
-            }
-
-            const users = await res.json();
-            renderUsers(users);
-
-        } catch {
-            showError('Impossible de contacter le serveur.');
-        }
-    }
-    (function() {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const token = localStorage.getItem('accessToken');
-        if (!token || !user || user.role !== 'admin') {
-            window.location.href = '/'; // Redirect to home if not admin
-        }
-    })();
-
-    // ------------------------------------------------------------------
-    // Rendu du tableau — construction DOM, JAMAIS innerHTML avec données
-    // ------------------------------------------------------------------
-    function renderUsers(users) {
-        const tbody = document.getElementById('user-table-body');
-        tbody.innerHTML = ''; // vide le tableau (contenu statique, pas de données)
-
-        if (!users.length) {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.setAttribute('colspan', '6');
-            td.appendChild(text('Aucun utilisateur trouvé'));
-            tr.appendChild(td);
-            tbody.appendChild(tr);
-            return;
-        }
-
-        users.forEach(u => {
-            const tr = document.createElement('tr');
-
-            // Chaque valeur utilisateur insérée via createTextNode — jamais comme HTML
-            tr.appendChild(createCell(u.id));
-            tr.appendChild(createCell(u.username));
-            tr.appendChild(createCell(u.email));
-
-            // Badge de rôle : créé via DOM, la valeur ne peut pas injecter de HTML
-            const tdRole  = document.createElement('td');
-            const badge   = document.createElement('span');
-            badge.className = `badge-${u.role === 'admin' ? 'admin' : 'user'}`;
-            badge.appendChild(text(u.role));
-            tdRole.appendChild(badge);
-            tr.appendChild(tdRole);
-
-            tr.appendChild(createCell(u.address || '-'));
-
-            // Colonne statut : locked vient du serveur comme booléen
-            const tdStatus = document.createElement('td');
-            if (u.locked) {
-                const lockSpan = document.createElement('span');
-                lockSpan.className = 'badge-locked';
-                lockSpan.appendChild(text('Verrouillé'));
-
-                const btn = document.createElement('button');
-                btn.className = 'btn-small';
-                btn.style.marginLeft = '8px';
-                btn.appendChild(text('Débloquer'));
-                btn.addEventListener('click', () => unlockUser(u.email));
-
-                tdStatus.appendChild(lockSpan);
-                tdStatus.appendChild(btn);
-            } else {
-                tdStatus.appendChild(text('Actif'));
-            }
-            tr.appendChild(tdStatus);
-
-            tbody.appendChild(tr);
-        });
-    }
-
-    // ------------------------------------------------------------------
-    // Déblocage d'un compte (admin)
-    // ------------------------------------------------------------------
-    async function unlockUser(email) {
-    const token = localStorage.getItem('accessToken');
-    
-    const response = await fetch('/api/auth/unlock', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // Crucial for authMiddleware
-        },
-        body: JSON.stringify({ email })
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-        alert('Compte déverrouillé !');
-    } else {
-        alert('Erreur: ' + data.error);
-    }
-}
-
-    // ------------------------------------------------------------------
-    // Refresh token silencieux
-    // ------------------------------------------------------------------
-    async function tryRefreshToken() {
-        try {
-            const res = await fetch('/api/auth/refresh', {
-                method:      'POST',
-                credentials: 'include'  // envoie le cookie httpOnly
-            });
-            if (!res.ok) return false;
-            const data = await res.json();
-            localStorage.setItem('accessToken', data.accessToken);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    function showError(msg) {
-        const el = document.getElementById('message');
-        el.textContent  = msg; // textContent, jamais innerHTML
-        el.className    = 'message error';
-        el.style.display = 'block';
-    }
-
-    loadUsers();
     </script>
 </body>
 </html>
