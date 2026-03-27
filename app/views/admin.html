@@ -104,6 +104,13 @@
             showError('Impossible de contacter le serveur.');
         }
     }
+    (function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('accessToken');
+        if (!token || !user || user.role !== 'admin') {
+            window.location.href = '/'; // Redirect to home if not admin
+        }
+    })();
 
     // ------------------------------------------------------------------
     // Rendu du tableau — construction DOM, JAMAIS innerHTML avec données
@@ -168,27 +175,24 @@
     // Déblocage d'un compte (admin)
     // ------------------------------------------------------------------
     async function unlockUser(email) {
-        const token = localStorage.getItem('accessToken');
-        try {
-            const res = await fetch('/api/auth/unlock', {
-                method:  'POST',
-                headers: {
-                    'Content-Type':  'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'include',
-                body: JSON.stringify({ email })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                loadUsers(); // rechargement du tableau
-            } else {
-                showError(data.error || 'Erreur lors du déblocage');
-            }
-        } catch {
-            showError('Impossible de contacter le serveur.');
-        }
+    const token = localStorage.getItem('accessToken');
+    
+    const response = await fetch('/api/auth/unlock', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Crucial for authMiddleware
+        },
+        body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+        alert('Compte déverrouillé !');
+    } else {
+        alert('Erreur: ' + data.error);
     }
+}
 
     // ------------------------------------------------------------------
     // Refresh token silencieux

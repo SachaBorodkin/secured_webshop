@@ -73,7 +73,7 @@
     // Fonction utilitaire pour les en-têtes d'autorisation
     // ------------------------------------------------------------------
     function getAuthHeaders(contentType = 'application/json') {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         const headers = {
             'Authorization': `Bearer ${token}`
         };
