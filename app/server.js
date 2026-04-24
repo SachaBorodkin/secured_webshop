@@ -44,7 +44,6 @@ app.get("/profile",  (_req, res) => res.sendFile(path.join(__dirname, "views", "
 app.get("/admin",    (_req, res) => res.sendFile(path.join(__dirname, "views", "admin.html")));
 
 // Démarrage du serveur
-app.get("/test",      (_req, res) => res.send("db admin: root, pwd : root"));
 app.listen(8080, () => {
     console.log("Serveur démarré sur http://localhost:8080");
 });

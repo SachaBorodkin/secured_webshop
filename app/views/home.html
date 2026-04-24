@@ -15,14 +15,13 @@
     <section class="hero">
         <div>
             <p class="eyebrow">Offres Spéciales</p>
-            <h1>Jusqu'à -45% sur la sélection d'hygiène</h1>
+            <h1>Jusqu'à -45% sur la sélection d'alcool fort</h1>
         </div>
     </section>
 
     <section class="category-grid">
         <a href="/promotions" class="category-tile">Mes offres <span>🎁</span></a>
         <a href="/admin" class="category-tile">Toutes les actions <span>%</span></a>
-        <a href="/profile" class="category-tile">Mes Recettes <span>🍲</span></a>
     </section>
 
    <section id="produit" class="product-section">
@@ -41,24 +40,53 @@
             const products = await response.json();
             const listContainer = document.getElementById('product-list');
 
+            listContainer.innerHTML = '';
+
             if (products.length === 0) {
                 listContainer.innerHTML = "<p>Aucun produit disponible pour le moment.</p>";
                 return;
             }
 
-            listContainer.innerHTML = products.map(product => `
-                <article class="product-card">
-                    <img src="${product.image_url || 'https://via.placeholder.com/300'}" alt="${product.name}" />
-                    <div class="product-content">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <div class="product-footer">
-                            <span class="price">${product.price} CHF</span>
-                            <button type="button">Ajouter au panier</button>
-                        </div>
-                    </div>
-                </article>
-            `).join('');
+            products.forEach(product => {
+                const article = document.createElement('article');
+                article.className = 'product-card';
+
+                const img = document.createElement('img');
+                img.src = product.image_url || 'https://via.placeholder.com/300';
+                img.alt = product.name;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'product-content';
+
+                const h3 = document.createElement('h3');
+                h3.textContent = product.name;
+
+                const p = document.createElement('p');
+                p.textContent = product.description;
+
+                const footerDiv = document.createElement('div');
+                footerDiv.className = 'product-footer';
+
+                const span = document.createElement('span');
+                span.className = 'price';
+                span.textContent = product.price + ' CHF';
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = 'Ajouter au panier';
+
+                footerDiv.appendChild(span);
+                footerDiv.appendChild(button);
+
+                contentDiv.appendChild(h3);
+                contentDiv.appendChild(p);
+                contentDiv.appendChild(footerDiv);
+
+                article.appendChild(img);
+                article.appendChild(contentDiv);
+
+                listContainer.appendChild(article);
+            });
         } catch (error) {
             document.getElementById('product-list').innerHTML = "<p>Erreur lors du chargement des produits.</p>";
         }

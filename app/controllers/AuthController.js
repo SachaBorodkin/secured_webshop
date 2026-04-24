@@ -62,6 +62,25 @@ module.exports = {
                 return res.status(400).json({ error: 'Tous les champs sont requis' });
             }
 
+            // Validation du username (alphanumeric + underscore, 3-30 characters)
+            if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+                return res.status(400).json({
+                    error: 'Le nom d\'utilisateur doit contenir 3-30 caractères (lettres, chiffres, tiret bas uniquement)'
+                });
+            }
+
+            // Validation du format email
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return res.status(400).json({ error: 'Format d\'email invalide' });
+            }
+
+            // Validation de la force du mot de passe (minimum 8 caractères)
+            if (password.length < 8) {
+                return res.status(400).json({
+                    error: 'Le mot de passe doit contenir au minimum 8 caractères'
+                });
+            }
+
             //Utilisation du poivre et sel (sel géré par bcrypt)
             const pepper = process.env.DB_PEPPER || '';
             const saltRounds = 10;
@@ -82,9 +101,9 @@ module.exports = {
                     return res.status(500).json({ error: 'Erreur lors de la création du compte' });
                 }
 
-                res.status(201).json({ 
+                res.status(201).json({
                     message: 'Utilisateur enregistré avec succès',
-                    userId: result.insertId 
+                    userId: result.insertId
                 });
             });
         } catch (error) {

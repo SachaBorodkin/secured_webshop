@@ -82,6 +82,11 @@
 
     <script src="/js/nav.js"></script>
     <script>
+        // Check authentication before allowing access to profile page
+        if (!isAuthenticated()) {
+            window.location.href = '/login';
+        }
+
         function getAuthHeaders(contentType = 'application/json') {
             const token = localStorage.getItem('token');
             const headers = { 'Authorization': `Bearer ${token}` };
@@ -104,8 +109,17 @@
             document.getElementById('address').value = user.address || '';
 
             if (user.photo_path) {
-                document.getElementById('photo-container').innerHTML = 
-                    `<img class="profile-photo" src="${user.photo_path}" alt="Photo de profil">`;
+                const photoContainer = document.getElementById('photo-container');
+                photoContainer.innerHTML = '';
+
+                // Validate that photo_path is a safe URL
+                if (user.photo_path.startsWith('/') || user.photo_path.startsWith('http')) {
+                    const img = document.createElement('img');
+                    img.className = 'profile-photo';
+                    img.src = user.photo_path;
+                    img.alt = 'Photo de profil';
+                    photoContainer.appendChild(img);
+                }
             }
         }
 

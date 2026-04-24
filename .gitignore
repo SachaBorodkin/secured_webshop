@@ -2,6 +2,9 @@
 /secured_webshop.iml
 /.idea/
 
+# Environment variables (sensitive data)
+.env
+
 # Photos uploadées par les utilisateurs (conservées localement, pas en git)
 /app/public/uploads/*.jpg
 /app/public/uploads/*.jpeg
