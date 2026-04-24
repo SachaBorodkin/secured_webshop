@@ -46,6 +46,7 @@
                     <div class="info-row"><strong>Nom :</strong> <span id="username">...</span></div>
                     <div class="info-row"><strong>Email :</strong> <span id="email">...</span></div>
                     <div class="info-row"><strong>Rôle :</strong> <span id="role">...</span></div>
+                    <div class="info-row"><strong>Adresse :</strong> <span id="display-address">-</span></div>
                 </div>
 
                 <hr>
@@ -96,7 +97,7 @@
 
         async function loadProfile() {
             const res = await fetch('/api/profile', { headers: getAuthHeaders() });
-            
+
             if (res.status === 401 || res.status === 403) {
                 window.location.href = '/login';
                 return;
@@ -106,6 +107,7 @@
             document.getElementById('username').textContent = user.username;
             document.getElementById('email').textContent = user.email;
             document.getElementById('role').textContent = user.role;
+            document.getElementById('display-address').textContent = user.address || '-';
             document.getElementById('address').value = user.address || '';
 
             if (user.photo_path) {

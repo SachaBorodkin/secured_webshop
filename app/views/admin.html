@@ -74,128 +74,148 @@
     <script src="/js/nav.js"></script>
     <script>
         // Check authentication and admin role before allowing access
-        if (!isAuthenticated() || !isAdmin()) {
-            window.location.href = '/';
-        }
-        // Load users on page load
-        async function loadUsers() {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/admin/users', {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Non authentifié. Veuillez vous connecter.');
-                    }
-                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
-                }
-                const users = await response.json();
-                const tbody = document.getElementById('user-table-body');
-                
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5">Aucun utilisateur trouvé</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = '';
-                users.forEach(u => {
-                    const row = document.createElement('tr');
-
-                    const tdId = document.createElement('td');
-                    tdId.textContent = u.id;
-
-                    const tdUsername = document.createElement('td');
-                    tdUsername.textContent = u.username;
-
-                    const tdEmail = document.createElement('td');
-                    tdEmail.textContent = u.email;
-
-                    const tdRole = document.createElement('td');
-                    const span = document.createElement('span');
-                    span.className = `badge-${u.role}`;
-                    span.textContent = u.role;
-                    tdRole.appendChild(span);
-
-                    const tdAddress = document.createElement('td');
-                    tdAddress.textContent = u.address || '-';
-
-                    row.appendChild(tdId);
-                    row.appendChild(tdUsername);
-                    row.appendChild(tdEmail);
-                    row.appendChild(tdRole);
-                    row.appendChild(tdAddress);
-
-                    tbody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error loading users:', error);
-                document.getElementById('user-table-body').innerHTML =
-                    `<tr><td colspan="5">${error.message}</td></tr>`;
-            }
+        if (!isAuthenticated()) {
+            window.location.href = '/login';
         }
 
-        // Handle product form submission
-        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                name: document.getElementById('product-name').value,
-                description: document.getElementById('product-description').value,
-                price: parseFloat(document.getElementById('product-price').value),
-                image_url: document.getElementById('product-image').value || null
-            };
+        // Non-admin access detection with fun easter egg
+        if (!isAdmin()) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.body.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-direction: column; text-align: center; padding: 20px;">
+                        <h1 style="color: white; font-size: 3rem; margin-bottom: 20px;">Nice Try! 🎮</h1>
+                        <img src="/uploads/tf2-scout-tf2.gif" alt="Nope!" style="max-width: 90%; height: auto; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 30px;">
+                        <p style="color: white; font-size: 1.5rem; margin-bottom: 10px;">You need to be an admin to access this page!</p>
+                        <p style="color: rgba(255,255,255,0.8); font-size: 1rem; margin-bottom: 30px;">Scout says: "Bonk!"</p>
+                        <a href="/" style="background-color: white; color: #667eea; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                            Back to Home
+                        </a>
+                    </div>
+                `;
+            });
+        } else {
+            // Admin access allowed - set up admin page functions
 
-            const messageDiv = document.getElementById('form-message');
+            // Load users on page load
+            async function loadUsers() {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/admin/users', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            throw new Error('Non authentifié. Veuillez vous connecter.');
+                        }
+                        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                    }
+                    const users = await response.json();
+                    const tbody = document.getElementById('user-table-body');
 
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/admin/products', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(formData)
-                });
+                    if (!users || users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5">Aucun utilisateur trouvé</td></tr>';
+                        return;
+                    }
 
-                messageDiv.style.display = 'block';
-                
-                if (response.ok) {
-                    messageDiv.style.backgroundColor = '#d4edda';
-                    messageDiv.style.color = '#155724';
-                    messageDiv.textContent = 'Produit ajouté avec succès!';
-                    document.getElementById('add-product-form').reset();
-                    setTimeout(() => {
-                        messageDiv.style.display = 'none';
-                    }, 3000);
-                } else if (response.status === 401) {
-                    messageDiv.style.backgroundColor = '#f8d7da';
-                    messageDiv.style.color = '#721c24';
-                    messageDiv.textContent = 'Non authentifié. Veuillez vous connecter.';
-                } else {
-                    const error = await response.json();
-                    messageDiv.style.backgroundColor = '#f8d7da';
-                    messageDiv.style.color = '#721c24';
-                    messageDiv.textContent = `Erreur: ${error.message || 'Impossible d\'ajouter le produit'}`;
+                    tbody.innerHTML = '';
+                    users.forEach(u => {
+                        const row = document.createElement('tr');
+
+                        const tdId = document.createElement('td');
+                        tdId.textContent = u.id;
+
+                        const tdUsername = document.createElement('td');
+                        tdUsername.textContent = u.username;
+
+                        const tdEmail = document.createElement('td');
+                        tdEmail.textContent = u.email;
+
+                        const tdRole = document.createElement('td');
+                        const span = document.createElement('span');
+                        span.className = `badge-${u.role}`;
+                        span.textContent = u.role;
+                        tdRole.appendChild(span);
+
+                        const tdAddress = document.createElement('td');
+                        tdAddress.textContent = u.address || '-';
+
+                        row.appendChild(tdId);
+                        row.appendChild(tdUsername);
+                        row.appendChild(tdEmail);
+                        row.appendChild(tdRole);
+                        row.appendChild(tdAddress);
+
+                        tbody.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Error loading users:', error);
+                    document.getElementById('user-table-body').innerHTML =
+                        `<tr><td colspan="5">${error.message}</td></tr>`;
                 }
-            } catch (error) {
-                console.error('Error adding product:', error);
-                messageDiv.style.display = 'block';
-                messageDiv.style.backgroundColor = '#f8d7da';
-                messageDiv.style.color = '#721c24';
-                messageDiv.textContent = 'Erreur lors de l\'ajout du produit';
             }
-        });
 
-        // Load users when page loads
-        window.addEventListener('DOMContentLoaded', loadUsers);
+            // Handle product form submission
+            document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = {
+                    name: document.getElementById('product-name').value,
+                    description: document.getElementById('product-description').value,
+                    price: parseFloat(document.getElementById('product-price').value),
+                    image_url: document.getElementById('product-image').value || null
+                };
+
+                const messageDiv = document.getElementById('form-message');
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/admin/products', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    messageDiv.style.display = 'block';
+
+                    if (response.ok) {
+                        messageDiv.style.backgroundColor = '#d4edda';
+                        messageDiv.style.color = '#155724';
+                        messageDiv.textContent = 'Produit ajouté avec succès!';
+                        document.getElementById('add-product-form').reset();
+                        setTimeout(() => {
+                            messageDiv.style.display = 'none';
+                        }, 3000);
+                    } else if (response.status === 401) {
+                        messageDiv.style.backgroundColor = '#f8d7da';
+                        messageDiv.style.color = '#721c24';
+                        messageDiv.textContent = 'Non authentifié. Veuillez vous connecter.';
+                    } else {
+                        const error = await response.json();
+                        messageDiv.style.backgroundColor = '#f8d7da';
+                        messageDiv.style.color = '#721c24';
+                        messageDiv.textContent = `Erreur: ${error.message || 'Impossible d\'ajouter le produit'}`;
+                    }
+                } catch (error) {
+                    console.error('Error adding product:', error);
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.backgroundColor = '#f8d7da';
+                    messageDiv.style.color = '#721c24';
+                    messageDiv.textContent = 'Erreur lors de l\'ajout du produit';
+                }
+            });
+
+            // Load users when page loads
+            window.addEventListener('DOMContentLoaded', loadUsers);
+        }
     </script>
 </body>
 </html>

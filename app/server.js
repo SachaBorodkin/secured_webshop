@@ -5,6 +5,9 @@ const path = require("path");
 
 const app = express();
 
+// Trust proxy for accurate IP detection (important for rate limiting)
+app.set('trust proxy', 1);
+
 // Middleware pour parser le corps des requêtes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
