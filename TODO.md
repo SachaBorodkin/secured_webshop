@@ -33,8 +33,8 @@ Points : 1 pt / tâche
 
 Points : 2 pts / tâche
 
-- [ ] Tâche 7 : Implémenter un Rate Limiting sur le login (ex: 5 essais/min/IP).
-- [ ] Tâche 8 : Verrouillage de compte après N tentatives (historique BDD + déblocage).
+- [x] Tâche 7 : Implémenter un Rate Limiting sur le login (ex: 5 essais/min/IP).
+- [x] Tâche 8 : Verrouillage de compte après N tentatives (historique BDD + déblocage).
 - [ ] Tâche 9 : Audit complet basé sur le Top 10 OWASP 2025.
 - [ ] Tâche 10 : Chiffrement des données sensibles (RGPD) en base de données.
 - [ ] Tâche 11 : Identification et correction d'une faille XSS spécifique.
