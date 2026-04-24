@@ -6,17 +6,17 @@ Ces tâches constituent le socle de base du projet.
 
 ### Authentification & Frontend
 
-- [ ] Implémenter une page de login en frontend
-- [ ] Implémenter une page d'inscription en frontend
-- [ ] Implémenter l'utilisation d'un token JWT
-- [ ] Ajouter les rôles administrateur et utilisateur dans le JWT et protéger les routes d'administration
+- [x] Implémenter une page de login en frontend
+- [x] Implémenter une page d'inscription en frontend
+- [x] Implémenter l'utilisation d'un token JWT
+- [x] Ajouter les rôles administrateur et utilisateur dans le JWT et protéger les routes d'administration
 
 ### Sécurité Backend & Base de Données
 
-- [ ] Remplacer les mots de passes en clair dans la base par un hash
-- [ ] Ajouter un sel (Salt)
-- [ ] Ajouter un poivre (Pepper)
-- [ ] Corriger les requêtes existantes afin de prévenir l'injection SQL
+- [x] Remplacer les mots de passes en clair dans la base par un hash
+- [x] Ajouter un sel (Salt)
+- [x] Ajouter un poivre (Pepper)
+- [x] Corriger les requêtes existantes afin de prévenir l'injection SQL
 
 ## 1.1 Activités « Faciles »
 
