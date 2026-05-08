@@ -34,6 +34,24 @@
 
     <div id="message" class="message"></div>
 </form>
+
+<form id="2fa-form" class="form-card" style="display: none;">
+    <h2>Vérification 2FA</h2>
+
+    <div class="form-group">
+        <input type="text" id="totp-code" placeholder=" " maxlength="6">
+        <label>Code TOTP (6 chiffres)</label>
+    </div>
+
+    <div class="form-group">
+        <input type="text" id="backup-code" placeholder=" ">
+        <label>Ou utilisez un code de secours</label>
+    </div>
+
+    <button type="submit" class="btn-primary">Vérifier</button>
+
+    <div id="2fa-message" class="message"></div>
+</form>
 </div>
         </section>
     </main>
@@ -49,25 +67,58 @@
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // CRITIQUE : Il faut récupérer les valeurs des inputs ici
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
     const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }) // Maintenant email et password existent
+        body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        if (data.pending_2fa) {
+            sessionStorage.setItem('temp_2fa_token', data.tempToken);
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('2fa-form').style.display = 'block';
+        } else {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = '/';
+        }
+    } else {
+        const msg = document.getElementById('message');
+        msg.textContent = data.error || 'Erreur de connexion';
+        msg.className = 'message error';
+        msg.style.display = 'block';
+    }
+});
+
+document.getElementById('2fa-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const tempToken = sessionStorage.getItem('temp_2fa_token');
+    const totp = document.getElementById('totp-code').value;
+    const backupCode = document.getElementById('backup-code').value;
+
+    const res = await fetch('/api/auth/verify-totp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempToken, totp: totp || undefined, backupCode: backupCode || undefined })
     });
 
     const data = await res.json();
 
     if (res.ok) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user)); 
+        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.removeItem('temp_2fa_token');
         window.location.href = '/';
     } else {
-        const msg = document.getElementById('message');
-        msg.textContent = data.error || 'Erreur de connexion';
+        const msg = document.getElementById('2fa-message');
+        msg.textContent = data.error || 'Erreur de vérification';
         msg.className = 'message error';
         msg.style.display = 'block';
     }

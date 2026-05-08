@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Shop - Configuration 2FA</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .qr-container {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        .qr-container img {
+            max-width: 300px;
+            border: 2px solid #333;
+        }
+        .secret-display {
+            background-color: #f0f0f0;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 1rem 0;
+            border-left: 4px solid #007bff;
+        }
+        .backup-codes {
+            background-color: #fff3cd;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border-left: 4px solid #ffc107;
+        }
+        .backup-codes h4 {
+            margin-top: 0;
+        }
+        .backup-codes p {
+            margin: 0.5rem 0;
+            font-family: monospace;
+        }
+        .step-indicator {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .step {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            text-align: center;
+            font-weight: bold;
+        }
+        .step.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .step.completed {
+            background-color: #28a745;
+            color: white;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="topbar"></div>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Configuration 2FA</h1>
+            </div>
+        </section>
+
+        <div class="container">
+            <div class="form-card">
+                <div class="step-indicator">
+                    <div class="step active" id="step1">1. Scan QR</div>
+                    <div class="step" id="step2">2. Vérifier</div>
+                    <div class="step" id="step3">3. Codes de secours</div>
+                </div>
+
+                <div id="step1-content" class="step-content active">
+                    <h3>Étape 1: Scannez le code QR</h3>
+                    <p>Utilisez une application d'authentification comme Google Authenticator, Microsoft Authenticator ou Authy pour scanner ce code QR :</p>
+
+                    <div id="loading" style="text-align: center; padding: 2rem;">
+                        <p>Génération du code QR...</p>
+                    </div>
+
+                    <div id="qr-section" style="display: none;">
+                        <div class="qr-container">
+                            <img id="qr-code" alt="Code QR 2FA">
+                        </div>
+
+                        <p>Si vous ne pouvez pas scanner le code QR, entrez manuellement cette clé :</p>
+                        <div class="secret-display" id="secret-key">-</div>
+
+                        <button class="btn-primary" onclick="document.getElementById('step1-content').style.display='none'; document.getElementById('step2-content').style.display='block'; updateStepIndicator(2);">Suivant</button>
+                    </div>
+
+                    <div id="error" style="display: none;" class="message error"></div>
+                </div>
+
+                <div id="step2-content" class="step-content">
+                    <h3>Étape 2: Vérifiez votre configuration</h3>
+                    <p>Entrez le code à 6 chiffres de votre application d'authentification :</p>
+
+                    <div class="form-group">
+                        <input type="text" id="totp-verify" placeholder=" " maxlength="6" pattern="[0-9]{6}">
+                        <label>Code TOTP (6 chiffres)</label>
+                    </div>
+
+                    <div id="verify-message" class="message" style="display: none;"></div>
+
+                    <button class="btn-primary" id="verify-btn">Vérifier et continuer</button>
+                    <button class="btn-primary" style="background-color: #6c757d;" onclick="document.getElementById('step1-content').style.display='block'; document.getElementById('step2-content').style.display='none'; updateStepIndicator(1);">Retour</button>
+                </div>
+
+                <div id="step3-content" class="step-content">
+                    <h3>Étape 3: Codes de secours</h3>
+                    <p>Conservez ces codes de secours dans un endroit sûr. Vous pouvez les utiliser pour vous connecter si vous perdez accès à votre appareil d'authentification :</p>
+
+                    <div class="backup-codes">
+                        <h4>⚠️ Codes de secours</h4>
+                        <div id="backup-codes-list"></div>
+                        <p><small>Chaque code ne peut être utilisé qu'une seule fois</small></p>
+                    </div>
+
+                    <button class="btn-primary" id="complete-btn">Terminer la configuration</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="contact" class="footer">
+        <div class="container">
+            <p>Projet pedagogique - ETML 183</p>
+        </div>
+    </footer>
+
+    <script src="/js/nav.js"></script>
+    <script>
+        if (!isAuthenticated()) {
+            window.location.href = '/login';
+        }
+
+        let qrCode, secretKey, backupCodes;
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('token');
+            return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        }
+
+        function updateStepIndicator(step) {
+            document.getElementById('step1').classList.remove('active', 'completed');
+            document.getElementById('step2').classList.remove('active', 'completed');
+            document.getElementById('step3').classList.remove('active', 'completed');
+
+            if (step >= 1) document.getElementById('step1').classList.add('completed');
+            if (step >= 2) document.getElementById('step2').classList.add('completed');
+            if (step === 3) document.getElementById('step3').classList.add('active');
+            if (step === 2) document.getElementById('step2').classList.add('active');
+            if (step === 1) document.getElementById('step1').classList.add('active');
+        }
+
+        async function setupQR() {
+            const res = await fetch('/api/auth/setup-2fa', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+
+            if (!res.ok) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Erreur lors de la génération du code QR';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+
+            const data = await res.json();
+            qrCode = data.qrCode;
+            secretKey = data.secret;
+            backupCodes = data.backupCodes;
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('qr-code').src = qrCode;
+            document.getElementById('secret-key').textContent = secretKey;
+            document.getElementById('qr-section').style.display = 'block';
+        }
+
+        document.getElementById('verify-btn').addEventListener('click', async () => {
+            const totp = document.getElementById('totp-verify').value;
+
+            if (!/^\d{6}$/.test(totp)) {
+                const msg = document.getElementById('verify-message');
+                msg.textContent = 'Entrez un code TOTP à 6 chiffres';
+                msg.className = 'message error';
+                msg.style.display = 'block';
+                return;
+            }
+
+            const res = await fetch('/api/auth/verify-2fa-setup', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ totp, secret: secretKey })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                const msg = document.getElementById('verify-message');
+                msg.textContent = data.error || 'Erreur de vérification';
+                msg.className = 'message error';
+                msg.style.display = 'block';
+                return;
+            }
+
+            backupCodes = data.backupCodes;
+            const list = document.getElementById('backup-codes-list');
+            list.innerHTML = backupCodes.map(code => `<p>${code}</p>`).join('');
+
+            document.getElementById('step2-content').style.display = 'none';
+            document.getElementById('step3-content').style.display = 'block';
+            updateStepIndicator(3);
+        });
+
+        document.getElementById('complete-btn').addEventListener('click', () => {
+            const isFromProfile = sessionStorage.getItem('setup_2fa_from_profile') === 'true';
+            sessionStorage.removeItem('setup_2fa_from_profile');
+            window.location.href = isFromProfile ? '/profile' : '/';
+        });
+
+        setupQR();
+    </script>
+</body>
+</html>

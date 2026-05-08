@@ -2,11 +2,18 @@ require('dotenv').config({ path: '../.env' });
 const authMiddleware = require("./middleware/auth");
 const express = require("express");
 const path = require("path");
+const requestIp = require('request-ip');
 
 const app = express();
 
 // Trust proxy for accurate IP detection (important for rate limiting)
 app.set('trust proxy', 1);
+
+// Global middleware to extract client IP (available to all routes)
+app.use((req, res, next) => {
+    req.clientIp = requestIp.getClientIp(req);
+    next();
+});
 
 // Middleware pour parser le corps des requêtes
 app.use(express.json());
@@ -45,6 +52,7 @@ app.get("/login",    (_req, res) => res.sendFile(path.join(__dirname, "views", "
 app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "views", "register.html")));
 app.get("/profile",  (_req, res) => res.sendFile(path.join(__dirname, "views", "profile.html")));
 app.get("/admin",    (_req, res) => res.sendFile(path.join(__dirname, "views", "admin.html")));
+app.get("/2fa-setup", (_req, res) => res.sendFile(path.join(__dirname, "views", "2fa-setup.html")));
 
 // Démarrage du serveur
 app.listen(8080, () => {

@@ -12,8 +12,8 @@ module.exports = {
         const userId = req.user.id; 
 
         db.query(
-            'SELECT id, username, email, role, address, photo_path FROM users WHERE id = ?', 
-            [userId], 
+            'SELECT id, username, email, role, address, photo_path, two_fa_enabled FROM users WHERE id = ?',
+            [userId],
             (err, results) => {
                 if (err) {
                     return res.status(500).json({ error: 'Erreur serveur' });

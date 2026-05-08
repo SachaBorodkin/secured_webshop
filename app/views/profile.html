@@ -71,6 +71,13 @@
                     <button type="submit" class="btn-primary btn-update">Envoyer la photo</button>
                 </form>
 
+                <hr>
+
+                <h3>Authentification à deux facteurs (2FA)</h3>
+                <div class="info-row"><strong>Statut 2FA :</strong> <span id="2fa-status">Vérification...</span></div>
+                <button id="enable-2fa-btn" class="btn-primary btn-update" style="display: none;">Activer 2FA</button>
+                <button id="disable-2fa-btn" class="btn-primary btn-update" style="display: none; background-color: #dc3545;">Désactiver 2FA</button>
+
             </div>
         </div>
     </main>
@@ -110,11 +117,18 @@
             document.getElementById('display-address').textContent = user.address || '-';
             document.getElementById('address').value = user.address || '';
 
+            if (user.two_fa_enabled) {
+                document.getElementById('2fa-status').textContent = '✓ Activé';
+                document.getElementById('disable-2fa-btn').style.display = 'block';
+            } else {
+                document.getElementById('2fa-status').textContent = 'Désactivé';
+                document.getElementById('enable-2fa-btn').style.display = 'block';
+            }
+
             if (user.photo_path) {
                 const photoContainer = document.getElementById('photo-container');
                 photoContainer.innerHTML = '';
 
-                // Validate that photo_path is a safe URL
                 if (user.photo_path.startsWith('/') || user.photo_path.startsWith('http')) {
                     const img = document.createElement('img');
                     img.className = 'profile-photo';
@@ -164,6 +178,26 @@
             el.style.display = 'block';
             setTimeout(() => { el.style.display = 'none'; }, 4000);
         }
+
+        document.getElementById('enable-2fa-btn').addEventListener('click', () => {
+            sessionStorage.setItem('setup_2fa_from_profile', 'true');
+            window.location.href = '/2fa-setup';
+        });
+
+        document.getElementById('disable-2fa-btn').addEventListener('click', async () => {
+            const password = prompt('Entrez votre mot de passe pour désactiver 2FA :');
+            if (!password) return;
+
+            const res = await fetch('/api/auth/disable-2fa', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ password })
+            });
+
+            const data = await res.json();
+            showMessage(res.ok ? 'success' : 'error', data.message || data.error);
+            if (res.ok) loadProfile();
+        });
 
         loadProfile();
     </script>
