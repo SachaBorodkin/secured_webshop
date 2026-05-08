@@ -5,7 +5,6 @@
 3. [Section 2: Sécurité Backend & Base de Données](#section-2-sécurité-backend--base-de-données)
 4. [Section 3: Rate Limiting & Verrouillage de Compte](#section-3-rate-limiting--verrouillage-de-compte)
 5. [Section 4: Authentification à Deux Facteurs (2FA)](#section-4-authentification-à-deux-facteurs-2fa)
-6. [Résumé des fichiers modifiés/créés](#résumé-des-fichiers-modifiéscréés)
 
 ---
 
@@ -573,9 +572,8 @@ CREATE TABLE IF NOT EXISTS users (
 ```
 
 #### (2) - Finale
-**Fichier**: `app/db/init/lockout-schema.sql`
+**DB**:
 ```sql
--- Migration: Add account lockout and login audit features
 ALTER TABLE users
 ADD COLUMN failed_attempts INT DEFAULT 0,
 ADD COLUMN locked_until DATETIME NULL,
@@ -774,10 +772,7 @@ app.use((req, res, next) => {
 **État**: Aucune colonnes/tables pour 2FA
 
 #### (2) - Finale
-**Fichier**: `app/db/init/2fa-schema.sql`
-
-```sql
--- Migration: Add Two-Factor Authentication (2FA) support
+**DB**:
 
 -- Colonnes ajoutées à la table users
 ALTER TABLE users
@@ -1313,130 +1308,3 @@ app.get("/2fa-setup", (_req, res) => res.sendFile(path.join(__dirname, "views", 
 - Retour de la page 2fa-setup.html
 
 ---
-
-## Résumé des Fichiers Modifiés/Créés
-
-### Fichiers CRÉÉS (Finales uniquement)
-
-| Fichier | Type | Description |
-|---------|------|-------------|
-| `app/controllers/TwoFAController.js` | Nouveau | Controller pour gérer le 2FA (setup, vérification, désactivation) |
-| `app/middleware/verify2FA.js` | Nouveau | Middleware pour vérifier les tokens temporaires 2FA |
-| `app/views/2fa-setup.html` | Nouveau | Page de configuration du 2FA |
-| `app/db/init/2fa-schema.sql` | Nouveau | Migration BDD pour les colonnes 2FA |
-
-### Fichiers MODIFIÉS (Changements principaux)
-
-| Fichier | Modifications |
-|---------|--------------|
-| `app/package.json` | Ajout: `speakeasy`, `qrcode`, `request-ip`, `bcrypt`, `jsonwebtoken` |
-| `app/server.js` | Ajout: extraction IP client via `request-ip`, route `/2fa-setup` |
-| `app/routes/Auth.js` | Ajout: 4 routes 2FA (setup, verify, login, disable) |
-| `app/controllers/AuthController.js` | Ajout: bcrypt hashing, JWT génération, logique 2FA conditionnelle, rate limiting |
-| `app/middleware/auth.js` | Ajout: Rejet des tokens temporaires avec `pending_2fa` |
-| `app/db/init/lockout-schema.sql` | Créé: Colonnes de verrouillage et table `login_attempts` |
-| `app/views/login.html` | Complète: Formulaire fonctionnel avec logique JWT |
-| `app/views/register.html` | Complète: Formulaire d'inscription avec validation |
-| `app/views/profile.html` | Modifié: Utilisation du JWT en header Authorization |
-| `app/views/admin.html` | Modifié: Protection et vérification du rôle admin |
-| `app/public/js/nav.js` | Créé/Modifié: Helpers d'authentification et gestion des rôles |
-
-### Fichiers INCHANGÉS (Identiques dans initiale et finale)
-
-| Fichier |
-|---------|
-| `app/controllers/AdminController.js` |
-| `app/controllers/HomeController.js` |
-| `app/controllers/ProductController.js` |
-| `app/controllers/ProfileController.js` |
-| `app/controllers/UserController.js` |
-| `app/middleware/isAdmin.js` |
-| `app/middleware/requireAuthPage.js` |
-| `app/middleware/rateLimitAuth.js` |
-| `app/routes/Admin.js` |
-| `app/routes/Home.js` |
-| `app/routes/Profile.js` |
-| `app/routes/User.js` |
-| `app/config/db.js` |
-| `app/db/init/init.sql` |
-
----
-
-## Résumé des Modifications par Domaine
-
-### 1. **Frontend & Authentification**
-- ✅ Pages login/register complètes
-- ✅ Stockage du JWT dans localStorage
-- ✅ Helpers frontend pour gérer auth et rôles
-- ✅ Protection conditionnelle de pages (admin)
-
-### 2. **Backend & Sécurité**
-- ✅ Hash des mots de passe (bcrypt + salt + pepper)
-- ✅ Prévention injection SQL (requêtes préparées)
-- ✅ JWT pour sécurisation des API
-
-### 3. **Rate Limiting & Protection des Comptes**
-- ✅ Rate limiting: 5 tentatives/min/IP
-- ✅ Verrouillage: 30 min après 5 tentatives
-- ✅ Déblocage automatique après délai
-- ✅ Historique des tentatives (BDD)
-
-### 4. **Authentification à Deux Facteurs**
-- ✅ TOTP basé sur speakeasy
-- ✅ Génération de QR codes
-- ✅ Codes de secours (8 codes)
-- ✅ Token temporaire 5 min après login
-- ✅ Vérification TOTP obligatoire pour accès API
-
-### 5. **Gestion des Rôles**
-- ✅ Rôles dans JWT (admin/user)
-- ✅ Middleware de vérification admin
-- ✅ Protection des routes admin
-- ✅ Navigation conditionnelle selon rôle
-
----
-
-## Fichiers de Configuration
-
-### .env (ajouté)
-```env
-JWT_SECRET=jagermeister
-DB_PEPPER=NoAlcoholNoLife
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=root
-DB_NAME=webshop
-```
-
-### Dependencies Finales
-```json
-{
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.1",
-    "express-rate-limit": "^7.5.1",
-    "jsonwebtoken": "^9.0.3",
-    "multer": "^1.4.5-lts.1",
-    "mysql2": "^3.9.4",
-    "nodemon": "^3.1.0",
-    "qrcode": "^1.5.4",
-    "request-ip": "^3.3.0",
-    "speakeasy": "^2.0.0"
-  }
-}
-```
-
----
-
-## Conclusion
-
-Cette transformation a élevé le projet `secured_webshop-main-initiale` en version sécurisée avec:
-
-1. **Authentification robuste**: JWT + 2FA TOTP
-2. **Sécurité des données**: Hash bcrypt + salt + pepper
-3. **Protection des requêtes**: Prévention injection SQL
-4. **Résilience**: Rate limiting + verrouillage de compte
-5. **Gestion des accès**: Rôles et permissions
-
-Tous les changements sont documentés et traçables via cette comparaison initiale vs finale.
