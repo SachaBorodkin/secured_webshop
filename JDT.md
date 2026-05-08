@@ -59,7 +59,7 @@ JdT - secured_webshop
 
     Logique de verrouillage automatique après N tentatives
 
-    Développement du mécanisme de déblocage (via lien email ou intervention admin)
+    Développement du mécanisme de déblocage
 
 2026-05-08
 1. Authentification forte (2h15)
